@@ -58,6 +58,9 @@ try {
       console.log('✅ Encrypted file created at: ' + tempFile);
       fs.renameSync(tempFile, file);
   } else {
+      console.error(`❌ Expected encrypted file not found: ${tempFile}`);
+      process.exit(1);
+  }
 
   // Read new content summary
   const newContent = fs.readFileSync(file, 'utf8');
