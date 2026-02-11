@@ -28,33 +28,23 @@ try {
   const originalContent = fs.readFileSync(file, 'utf8');
   console.log(`📄 Original content start: ${originalContent.substring(0, 50)}...`);
 
-  // Debug: check tool availability
-  try {
-    console.log('🔎 Checking staticrypt version:');
-    execSync('../../node_modules/.bin/staticrypt --version', { stdio: 'inherit' });
-  } catch (e) {
-    console.log('⚠️ Could not run local staticrypt.');
-  }
-
   // STRATEGY: Change directory to the target folder to avoid path issues
   const targetDir = path.dirname(file);
-  const targetFile = path.basename(file); // index.html
-  console.log(`📂 Changing working directory to: ${targetDir}`);
+  const targetFile = path.basename(file);
   process.chdir(targetDir);
 
   // Encrypt in place (default behavior creates [filename]_encrypted.html)
   // We use npx to ensure we get the right binary, or local path if npx fails
-  // simpler command: npx staticrypt index.html -p "..." --short
   const cmd = `npx staticrypt "${targetFile}" -p "${password}" --short`;
-  console.log(`RUNNING: ${cmd.replace(password, '******')}`);
   
-  execSync(cmd, { stdio: 'inherit' });
+  try {
+    execSync(cmd, { stdio: 'inherit' });
+  } catch (e) {
+    console.error('❌ Encryption command failed.');
+    process.exit(1);
+  }
 
   const expectedOutput = 'encrypted/index.html';
-
-  // DEBUG: List files in current dir
-  console.log('📂 Directory listing of current dir:');
-  execSync('ls -R', { stdio: 'inherit' });
 
   // Verify output exists and rename
   if (fs.existsSync(expectedOutput)) {
@@ -67,7 +57,7 @@ try {
       try {
         fs.rmdirSync('encrypted');
       } catch (e) {
-        console.log('⚠️ Could not remove encrypted directory (non-empty?)');
+        // Ignore cleanup errors
       }
   } else if (fs.existsSync('index_encrypted.html')) {
       // Fallback in case behavior changes
