@@ -2,12 +2,17 @@ import { execSync } from 'child_process';
 import fs from 'fs';
 
 const password = process.env.SITE_PASSWORD;
-// We encrypt the 'members' index page.
 const file = 'dist/members/index.html';
 
+console.log('Build script running.');
+console.log('Checking for SITE_PASSWORD...');
+
 if (!password) {
-  console.log('⚠️  SITE_PASSWORD not set. Skipping encryption (development mode).');
+  console.log('⚠️  SITE_PASSWORD is empty or undefined.');
+  console.log('Dump of (safe) env vars:', Object.keys(process.env));
   process.exit(0);
+} else {
+    console.log('✅ SITE_PASSWORD found (length: ' + password.length + ')');
 }
 
 if (!fs.existsSync(file)) {
