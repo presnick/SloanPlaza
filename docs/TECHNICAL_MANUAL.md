@@ -8,6 +8,7 @@
 
 ## 🔐 Key Secrets
 *   **`SITE_PASSWORD`**: This GitHub Repository Secret controls the password for the resident area.
+    *   **Current Password:** `SP2026`
     *   To change it: Go to **Settings > Secrets and variables > Actions > Repository secrets**.
 
 ## 🚀 How to Transfer Ownership (Easy Handover)

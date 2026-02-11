@@ -14,4 +14,5 @@
 ## How to Check if it Worked
 1.  Visit [your website URL] (e.g., https://presnick.github.io/SloanPlaza/).
 2.  Log in to the Residents Area.
+    *   **Password:** `SP2026`
 3.  Check the Meeting Minutes list. Your new file should appear there.
