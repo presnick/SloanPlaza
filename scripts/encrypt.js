@@ -28,15 +28,26 @@ try {
   const originalContent = fs.readFileSync(file, 'utf8');
   console.log(`📄 Original content start: ${originalContent.substring(0, 50)}...`);
 
-  // Encrypt to a temporary file first
-  execSync(`npx staticrypt "${file}" -p "${password}" -o "${tempFile}" --short`, { stdio: 'inherit' });
+  // Encrypt in place (default behavior creates [filename]_encrypted.html)
+  // We remove the -o flag to avoid path issues
+  execSync(`npx staticrypt "${file}" -p "${password}" --short`, { stdio: 'inherit' });
+
+  // The default output filename is file path with _encrypted before extension
+  // e.g. dist/members/index_encrypted.html
+  const encryptedDefaultFile = path.resolve('dist/members/index_encrypted.html');
 
   // DEBUG: List files to see what staticrypt actually created
   console.log('📂 Recursive directory listing of dist:');
   execSync(`ls -R ${path.resolve('dist')}`, { stdio: 'inherit' });
 
-  // Move temp file to original file
-  fs.renameSync(tempFile, file);
+  // Move the default output file to original file
+  if (fs.existsSync(encryptedDefaultFile)) {
+      fs.renameSync(encryptedDefaultFile, file);
+  } else {
+      console.error(`❌ Expected default encrypted file not found: ${encryptedDefaultFile}`);
+      // Fallback: maybe it's just 'encrypted.html'? Let's check the listing.
+      process.exit(1);
+  }
 
   // Read new content summary
   const newContent = fs.readFileSync(file, 'utf8');
