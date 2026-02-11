@@ -28,26 +28,36 @@ try {
   const originalContent = fs.readFileSync(file, 'utf8');
   console.log(`📄 Original content start: ${originalContent.substring(0, 50)}...`);
 
-  // Encrypt in place (default behavior creates [filename]_encrypted.html)
-  // We remove the -o flag to avoid path issues
-  execSync(`npx staticrypt "${file}" -p "${password}" --short`, { stdio: 'inherit' });
+  // Debug: check tool availability
+  try {
+    console.log('🔎 Checking staticrypt version:');
+    execSync('./node_modules/.bin/staticrypt --version', { stdio: 'inherit' });
+  } catch (e) {
+    console.log('⚠️ Could not run local staticrypt. Trying npx...');
+  }
 
-  // The default output filename is file path with _encrypted before extension
-  // e.g. dist/members/index_encrypted.html
-  const encryptedDefaultFile = path.resolve('dist/members/index_encrypted.html');
+  // Encrypt using shell redirection to ensure we capture output
+  // Using the temp file approach again, but via redirection
+  const cmd = `./node_modules/.bin/staticrypt "${file}" -p "${password}" --short > "${tempFile}"`;
+  console.log(`RUNNING: ${cmd.replace(password, '******')}`);
+  
+  try {
+      execSync(cmd, { stdio: 'inherit' }); // 'inherit' allows stderr to show up
+  } catch (e) {
+      // If local binary fails, try global npx (but still with redirection)
+       console.log('⚠️ Local binary failed, trying npx...');
+       execSync(`npx staticrypt "${file}" -p "${password}" --short > "${tempFile}"`, { stdio: 'inherit' });
+  }
 
-  // DEBUG: List files to see what staticrypt actually created
+  // DEBUG: List files
   console.log('📂 Recursive directory listing of dist:');
   execSync(`ls -R ${path.resolve('dist')}`, { stdio: 'inherit' });
 
-  // Move the default output file to original file
-  if (fs.existsSync(encryptedDefaultFile)) {
-      fs.renameSync(encryptedDefaultFile, file);
+  // Verify temp file exists and has content
+  if (fs.existsSync(tempFile) && fs.statSync(tempFile).size > 0) {
+      console.log('✅ Encrypted file created at: ' + tempFile);
+      fs.renameSync(tempFile, file);
   } else {
-      console.error(`❌ Expected default encrypted file not found: ${encryptedDefaultFile}`);
-      // Fallback: maybe it's just 'encrypted.html'? Let's check the listing.
-      process.exit(1);
-  }
 
   // Read new content summary
   const newContent = fs.readFileSync(file, 'utf8');
