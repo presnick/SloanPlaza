@@ -24,8 +24,28 @@ console.log(`🔒 Encrypting ${file}...`);
 try {
   // Overwrite the file with the encrypted version
   // --short flag prevents interactive prompt for short passwords
-  execSync(`npx staticrypt "${file}" -p "${password}" -o "${file}" --short`, { stdio: 'inherit' });
-  console.log('✅ Encryption complete.');
+  // Read original content summary
+  const originalContent = fs.readFileSync(file, 'utf8');
+  console.log(`📄 Original content start: ${originalContent.substring(0, 50)}...`);
+
+  const tempFile = 'dist/members/encrypted.html';
+
+  // Encrypt to a temporary file first
+  execSync(`npx staticrypt "${file}" -p "${password}" -o "${tempFile}" --short`, { stdio: 'inherit' });
+
+  // Move temp file to original file
+  fs.renameSync(tempFile, file);
+
+  // Read new content summary
+  const newContent = fs.readFileSync(file, 'utf8');
+  console.log(`📄 New content start: ${newContent.substring(0, 50)}...`);
+
+  if (newContent === originalContent) {
+    console.error('❌ Error: File content did not change!');
+    process.exit(1);
+  }
+  
+  console.log('✅ Encryption complete and verified.');
 } catch (e) {
   console.error('❌ Encryption failed.', e);
   process.exit(1);
