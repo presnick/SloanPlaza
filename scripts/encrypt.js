@@ -32,8 +32,8 @@ try {
   execSync(`npx staticrypt "${file}" -p "${password}" -o "${tempFile}" --short`, { stdio: 'inherit' });
 
   // DEBUG: List files to see what staticrypt actually created
-  console.log('📂 Directory listing of dist/members:');
-  execSync(`ls -la ${path.dirname(file)}`, { stdio: 'inherit' });
+  console.log('📂 Recursive directory listing of dist:');
+  execSync(`ls -R ${path.resolve('dist')}`, { stdio: 'inherit' });
 
   // Move temp file to original file
   fs.renameSync(tempFile, file);
