@@ -30,8 +30,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build with StatiCrypt
+      - name: Build Site
         run: npm run build
+
+      - name: Encrypt Members Page
+        run: node scripts/encrypt.js
         env:
           SITE_PASSWORD: ${{ secrets.SITE_PASSWORD }}
 
