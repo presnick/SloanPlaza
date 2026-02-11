@@ -31,34 +31,38 @@ try {
   // Debug: check tool availability
   try {
     console.log('🔎 Checking staticrypt version:');
-    execSync('./node_modules/.bin/staticrypt --version', { stdio: 'inherit' });
+    execSync('../../node_modules/.bin/staticrypt --version', { stdio: 'inherit' });
   } catch (e) {
-    console.log('⚠️ Could not run local staticrypt. Trying npx...');
+    console.log('⚠️ Could not run local staticrypt.');
   }
 
-  // Encrypt using shell redirection to ensure we capture output
-  // Using the temp file approach again, but via redirection
-  const cmd = `./node_modules/.bin/staticrypt "${file}" -p "${password}" --short > "${tempFile}"`;
+  // STRATEGY: Change directory to the target folder to avoid path issues
+  const targetDir = path.dirname(file);
+  const targetFile = path.basename(file); // index.html
+  console.log(`📂 Changing working directory to: ${targetDir}`);
+  process.chdir(targetDir);
+
+  // Encrypt in place (default behavior creates [filename]_encrypted.html)
+  // We use npx to ensure we get the right binary, or local path if npx fails
+  // simpler command: npx staticrypt index.html -p "..." --short
+  const cmd = `npx staticrypt "${targetFile}" -p "${password}" --short`;
   console.log(`RUNNING: ${cmd.replace(password, '******')}`);
   
-  try {
-      execSync(cmd, { stdio: 'inherit' }); // 'inherit' allows stderr to show up
-  } catch (e) {
-      // If local binary fails, try global npx (but still with redirection)
-       console.log('⚠️ Local binary failed, trying npx...');
-       execSync(`npx staticrypt "${file}" -p "${password}" --short > "${tempFile}"`, { stdio: 'inherit' });
-  }
+  execSync(cmd, { stdio: 'inherit' });
 
-  // DEBUG: List files
-  console.log('📂 Recursive directory listing of dist:');
-  execSync(`ls -R ${path.resolve('dist')}`, { stdio: 'inherit' });
+  const expectedOutput = 'index_encrypted.html';
 
-  // Verify temp file exists and has content
-  if (fs.existsSync(tempFile) && fs.statSync(tempFile).size > 0) {
-      console.log('✅ Encrypted file created at: ' + tempFile);
-      fs.renameSync(tempFile, file);
+  // DEBUG: List files in current dir
+  console.log('📂 Directory listing of current dir:');
+  execSync('ls -la', { stdio: 'inherit' });
+
+  // Verify output exists and rename
+  if (fs.existsSync(expectedOutput)) {
+      console.log('✅ Encrypted file created: ' + expectedOutput);
+      // We are in the dir, so just rename
+      fs.renameSync(expectedOutput, targetFile);
   } else {
-      console.error(`❌ Expected encrypted file not found: ${tempFile}`);
+      console.error(`❌ Expected encrypted file not found: ${expectedOutput}`);
       process.exit(1);
   }
 
