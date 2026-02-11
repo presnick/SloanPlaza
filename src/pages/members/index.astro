@@ -1,0 +1,44 @@
+---
+import fs from 'node:fs';
+import path from 'node:path';
+
+// List all files in the public/minutes directory at build time
+const minutesDir = path.join(process.cwd(), 'public', 'minutes');
+let files = [];
+try {
+  files = fs.readdirSync(minutesDir).filter(file => file !== '.gitkeep' && file !== 'README.md');
+} catch (e) {
+  // Directory might not exist yet
+}
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Sloan Plaza - Residents</title>
+	</head>
+	<body>
+		<h1>Residents Area</h1>
+        <p>Welcome, neighbor! This page is password protected.</p>
+
+        <h2>Meeting Minutes</h2>
+        {files.length === 0 ? (
+            <p>No minutes uploaded yet.</p>
+        ) : (
+            <ul>
+                {files.map((file) => (
+                    <li>
+                        <a href={`/SloanPlaza/minutes/${file}`} target="_blank">{file}</a>
+                    </li>
+                ))}
+            </ul>
+        )}
+        
+        <p>
+            <a href="/SloanPlaza/">Back to Public Site</a>
+        </p>
+	</body>
+</html>
