@@ -50,19 +50,31 @@ try {
   
   execSync(cmd, { stdio: 'inherit' });
 
-  const expectedOutput = 'index_encrypted.html';
+  const expectedOutput = 'encrypted/index.html';
 
   // DEBUG: List files in current dir
   console.log('📂 Directory listing of current dir:');
-  execSync('ls -la', { stdio: 'inherit' });
+  execSync('ls -R', { stdio: 'inherit' });
 
   // Verify output exists and rename
   if (fs.existsSync(expectedOutput)) {
       console.log('✅ Encrypted file created: ' + expectedOutput);
-      // We are in the dir, so just rename
+      // We are in the dir, so just rename.
+      // Rename effectively moves it out of the subdir and overwrites original.
       fs.renameSync(expectedOutput, targetFile);
+      
+      // Clean up the empty directory
+      try {
+        fs.rmdirSync('encrypted');
+      } catch (e) {
+        console.log('⚠️ Could not remove encrypted directory (non-empty?)');
+      }
+  } else if (fs.existsSync('index_encrypted.html')) {
+      // Fallback in case behavior changes
+      console.log('✅ Encrypted file created (fallback): index_encrypted.html');
+      fs.renameSync('index_encrypted.html', targetFile);
   } else {
-      console.error(`❌ Expected encrypted file not found: ${expectedOutput}`);
+      console.error(`❌ Expected encrypted file not found in 'encrypted/' or as 'index_encrypted.html'`);
       process.exit(1);
   }
 
