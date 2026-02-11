@@ -1,8 +1,8 @@
-import { execSync } from 'child_process';
-import fs from 'fs';
+import path from 'path';
 
 const password = process.env.SITE_PASSWORD;
-const file = 'dist/members/index.html';
+const file = path.resolve('dist/members/index.html');
+const tempFile = path.resolve('dist/members/encrypted.html');
 
 console.log('Build script running.');
 console.log('Checking for SITE_PASSWORD...');
@@ -22,13 +22,9 @@ if (!fs.existsSync(file)) {
 
 console.log(`🔒 Encrypting ${file}...`);
 try {
-  // Overwrite the file with the encrypted version
-  // --short flag prevents interactive prompt for short passwords
   // Read original content summary
   const originalContent = fs.readFileSync(file, 'utf8');
   console.log(`📄 Original content start: ${originalContent.substring(0, 50)}...`);
-
-  const tempFile = 'dist/members/encrypted.html';
 
   // Encrypt to a temporary file first
   execSync(`npx staticrypt "${file}" -p "${password}" -o "${tempFile}" --short`, { stdio: 'inherit' });
