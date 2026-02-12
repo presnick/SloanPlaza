@@ -1,19 +1,194 @@
 ---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import Section from '../components/Section.astro';
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Sloan Plaza</title>
-	</head>
-	<body>
-		<h1>Welcome to Sloan Plaza</h1>
-        <p>This is the public home page for our community.</p>
-        <p>
-            <a href="/SloanPlaza/members/">Resident Login (Members Only)</a>
-        </p>
-	</body>
-</html>
+<Layout title="Sloan Plaza | Ann Arbor">
+	<Header />
+	<main>
+		<section class="hero">
+			<div class="hero-content">
+				<h1>Welcome to Sloan Plaza</h1>
+				<p>An upscale high-rise luxury condominium in the heart of downtown Ann Arbor.</p>
+			</div>
+		</section>
+
+        <Section id="info">
+            <div class="info-grid">
+                <div class="card-simple">
+                    <h3>The Building</h3>
+                    <p>   
+                        Ranch and penthouse style units with 1 to 3 bedrooms&mdash;some with large garden terraces&mdash;offer spectacular views of the city and surrounding neighborhoods.
+                        A few units are commercial, but most have been converted to residential over the years.
+                    </p>
+                    <p>
+                        With only 47 units, Sloan Plaza offers a neighborly community. 
+                    </p>
+                    <p>
+                        Pets, within guidelines, are allowed. 
+                        Non-owner rentals are strictly limited.
+                    </p>
+                </div>
+                <div class="card-simple">
+                    <h3>Location</h3>
+                    <p>  
+                        The central campus of The University of Michigan is one block away, which includes the Natural History Museum, the Art Museum, and frequent lectures open to the public.
+                    </p>
+                    <p> 
+                        Within a five minute walk you will find Main Street and Kerrytown, offering a wide array of coffee shops, restaurants, and local art galleries, and   
+                        major venues: Hill Auditorium, Rackham Auditorium, Mendelsohn Theater, the Power Center for the Performing Arts, and the Michigan and State Theaters.    
+                    </p>
+                </div>
+                <div class="card-simple">
+                    <h3>Amenities</h3>
+                    <p>
+                        We offer a premium secured entry way with a lobby attendant and on-site manager during daytime hours.   
+                    </p>
+                    <p>
+                        Residents enjoy easy access to reserved covered parking with private storage and there is a shared EV charging station. 
+                    </p>
+                    <p> 
+                        Snow removal, landscaping, and exterior maintenance are the responsibility of the association. 
+                    </p>
+                </div>
+                <div class="card-simple">
+                    <h3>Our History</h3>
+                    <p>
+                        Sloan Plaza was built in 1986 by O’Neal Construction. Developer Donald Sloan Chisholm 
+                        named the project after his mother, Margaret Sloan Chisholm, and installed her Steinway in one of the units.
+                    </p>
+                    <p>
+                        There he hosted gatherings and housed legendary jazz artists performing in the city, including Dizzy Gillespie, Diana Krall, and Andre Previn.
+                    </p>
+                    <p>
+                        Chisholm was a founding board member of the Southeastern Michigan Jazz Association and received the Jazz Hero Award in 2015.
+                    </p>
+                </div>
+            </div>
+        </Section>
+
+        <Section id="contact" title="Contact Us" class="bg-light">
+            <div class="contact-grid">
+                <div class="contact-card">
+                    <h3>Management</h3>
+                    <p>For building inquiries and deliveries.</p>
+                    <a href="mailto:manager@sloanplaza.com">manager@sloanplaza.com</a>
+                </div>
+                <div class="contact-card">
+                    <h3>The Board</h3>
+                    <p>For condo association matters.</p>
+                    <a href="mailto:board@sloanplaza.com">board@sloanplaza.com</a>
+                </div>
+            </div>
+        </Section>
+
+        <Section id="login" class="text-center">
+            <h3>Are you a resident or owner?</h3>
+            <p class="mb-md">Access the private member dashboard for documents, board meeting minutes, member directory, and more.</p>
+            <a href="/SloanPlaza/members/" class="btn">Resident/Owner Site</a>
+        </Section>
+	</main>
+	<Footer />
+</Layout>
+
+<style>
+	.hero {
+		background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5)), url('/SloanPlaza/images/Building.jpg');
+		background-size: cover;
+		background-position: center;
+		height: 70vh;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		text-align: center;
+		color: var(--color-white);
+	}
+
+	.hero-content h1 {
+		color: var(--color-secondary);
+		font-size: 3.5rem;
+		margin-bottom: var(--spacing-md);
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+	}
+
+	.hero-content p {
+		font-size: 1.5rem;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+	}
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: var(--spacing-xl);
+    }
+
+    @media (min-width: 768px) {
+        .info-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    .card-simple {
+        padding: var(--spacing-lg);
+        background: var(--color-white);
+        border: 1px solid #eee;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        height: 100%;
+    }
+
+    .card-simple h3 {
+        color: var(--color-primary);
+        border-bottom: 2px solid var(--color-secondary);
+        padding-bottom: var(--spacing-sm);
+        margin-bottom: var(--spacing-md);
+        display: inline-block;
+    }
+
+    .text-center { text-align: center; }
+    .mb-md { margin-bottom: var(--spacing-md); }
+
+    @media (max-width: 768px) {
+        .hero {
+            height: 50vh;
+        }
+        .hero-content h1 {
+            font-size: 2.5rem;
+        }
+    }
+
+    .bg-light {
+        background-color: var(--color-light-gray);
+    }
+
+    .contact-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: var(--spacing-lg);
+        text-align: center;
+    }
+
+    .contact-card {
+        padding: var(--spacing-lg);
+        border: 1px solid #eee;
+        border-radius: var(--border-radius);
+        transition: transform 0.2s;
+        background: var(--color-white);
+    }
+
+    .contact-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--color-secondary);
+    }
+
+    .btn-sm {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+
+</style>

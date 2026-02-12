@@ -1,0 +1,60 @@
+---
+import siteData from '../data/site.json';
+const { nextMeeting } = siteData;
+---
+
+<div class="next-meeting">
+    <h4>Next Board Meeting</h4>
+    <div class="meeting-details">
+        <div class="detail date">
+            <span class="icon">📅</span>
+            <span>{nextMeeting.date}</span>
+        </div>
+        <div class="detail time">
+            <span class="icon">⏰</span>
+            <span>{nextMeeting.time}</span>
+        </div>
+        <div class="detail location">
+            <span class="icon">📍</span>
+            <span>{nextMeeting.location}</span>
+        </div>
+    </div>
+</div>
+
+<style>
+    .next-meeting {
+        background-color: var(--color-primary);
+        color: var(--color-white);
+        padding: var(--spacing-md);
+        border-radius: var(--border-radius);
+        text-align: center;
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--color-secondary);
+    }
+
+    h4 {
+        color: var(--color-secondary);
+        margin-bottom: var(--spacing-md);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 1rem;
+    }
+
+    .meeting-details {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+
+    .detail {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--spacing-sm);
+        font-size: 1.1rem;
+    }
+
+    .icon {
+        font-size: 1.2rem;
+    }
+</style>

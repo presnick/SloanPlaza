@@ -1,0 +1,70 @@
+---
+interface Props {
+    image?: string;
+    title: string;
+    subtitle?: string;
+}
+
+const { image, title, subtitle } = Astro.props;
+---
+
+<div class="card">
+    {image && (
+        <div class="card-image">
+            <img src={image} alt={title} />
+        </div>
+    )}
+    <div class="card-content">
+        <h3>{title}</h3>
+        {subtitle && <p class="subtitle">{subtitle}</p>}
+        <slot />
+    </div>
+</div>
+
+<style>
+    .card {
+        background: var(--color-white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 1px solid #eee;
+    }
+
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .card-image {
+        /* height: 200px; - Removed to prevent cropping */
+        overflow: hidden;
+        background-color: var(--color-light-gray);
+    }
+
+    .card-image img {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+
+    .card-content {
+        padding: var(--spacing-md);
+        text-align: center;
+    }
+
+    .card-content h3 {
+        font-size: 1.25rem;
+        margin-bottom: var(--spacing-sm);
+        color: var(--color-primary);
+    }
+
+    .subtitle {
+        color: var(--color-secondary);
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: var(--spacing-sm);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+</style>

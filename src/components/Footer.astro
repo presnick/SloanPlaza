@@ -1,0 +1,26 @@
+---
+const currentYear = new Date().getFullYear();
+---
+
+<footer class="footer">
+    <div class="container">
+        <p>&copy; {currentYear} Sloan Plaza Condominium Association. All rights reserved.</p>
+        <p class="contact">505 East Huron St, Ann Arbor, MI 48104</p>
+    </div>
+</footer>
+
+<style>
+    .footer {
+        background-color: var(--color-primary);
+        color: var(--color-white);
+        padding: var(--spacing-lg) 0;
+        text-align: center;
+        margin-top: auto;
+    }
+
+    .contact {
+        font-size: 0.9rem;
+        opacity: 0.8;
+        margin-top: var(--spacing-sm);
+    }
+</style>

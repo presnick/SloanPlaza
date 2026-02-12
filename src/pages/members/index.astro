@@ -1,44 +1,431 @@
 ---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import Section from '../../components/Section.astro';
+import Toc from '../../components/Toc.astro';
+
+import Carousel from '../../components/Carousel.astro';
+
+import { getCollection } from 'astro:content';
+import siteData from '../../data/site.json';
 import fs from 'node:fs';
 import path from 'node:path';
 
+// Fetch Collections
+const boardMembers = await getCollection('board');
+const communityItems = await getCollection('community');
+const sortedBoard = boardMembers.sort((a, b) => a.data.order - b.data.order);
+
+
+
 // List all files in the public/minutes directory at build time
 const minutesDir = path.join(process.cwd(), 'public', 'minutes');
-let files = [];
+let minuteFiles: string[] = [];
 try {
-  files = fs.readdirSync(minutesDir).filter(file => file !== '.gitkeep' && file !== 'README.md');
+  minuteFiles = fs.readdirSync(minutesDir).filter((file: string) => file !== '.gitkeep' && file !== 'README.md');
 } catch (e) {
   // Directory might not exist yet
 }
+
+const tocLinks = [
+    { id: 'documents', label: 'Official Documents' },
+    { id: 'board', label: 'Board of Directors' },
+    { id: 'management', label: 'Management' },
+    { id: 'directory', label: 'Resident Directory' },
+    { id: 'pets', label: 'Pets & People' },
+];
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Sloan Plaza - Residents</title>
-	</head>
-	<body>
-		<h1>Residents Area</h1>
-        <p>Welcome, neighbor! This page is password protected.</p>
+<Layout title="Member Dashboard | Sloan Plaza">
+	<Header />
+	<main class="dashboard-container">
+        <!-- Sidebar TOC -->
+        <aside class="sidebar">
+            <div class="sticky-wrapper">
+                <Toc links={tocLinks} />
+            </div>
+        </aside>
 
-        <h2>Meeting Minutes</h2>
-        {files.length === 0 ? (
-            <p>No minutes uploaded yet.</p>
-        ) : (
-            <ul>
-                {files.map((file) => (
-                    <li>
-                        <a href={`/SloanPlaza/minutes/${file}`} target="_blank">{file}</a>
-                    </li>
-                ))}
-            </ul>
-        )}
-        
-        <p>
-            <a href="/SloanPlaza/">Back to Public Site</a>
-        </p>
-	</body>
-</html>
+        <!-- Main Content -->
+        <div class="content">
+            
+            <Section id="documents" title="Official Documents">
+                <div class="docs-grid">
+                    <div class="doc-category">
+                        <h3>Governing Documents</h3>
+                        <ul>
+                            <li><span class="text-muted">Master Deed (Coming Soon)</span></li>
+                            <li><a href="/SloanPlaza/documents/bylaws.docx" download>By-laws (DOCX)</a></li>
+                            <li><a href="/SloanPlaza/documents/rules-regulations.docx" download>Rules & Regulations (DOCX)</a></li>
+                            <li><a href="/SloanPlaza/documents/michigan-condo-act.pdf" target="_blank">Michigan Condominium Act (PDF)</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="doc-category minutes-category">
+                        <h3>Meeting Minutes</h3>
+                        {minuteFiles.length === 0 ? (
+                            <p>No minutes uploaded yet.</p>
+                        ) : (
+                            <div class="minutes-list">
+                                {(() => {
+                                    // Parse and sort files
+                                    // Supports: "january-2026", "Jan_2026", "dec 2025", "sept-2024"
+                                    const monthsMap: { [key: string]: number } = {
+                                        jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5,
+                                        jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11
+                                    };
+
+                                    const sortedFiles = minuteFiles.map(file => {
+                                        const name = file.toLowerCase().replace('.pdf', '');
+                                        
+                                        // Regex to find month (first 3 chars) and 4-digit year
+                                        // Matches: start of string or separator, then first 3 letters of month, then optional rest of month name, then separator, then year
+                                        // Separators: -, _, space, .
+                                        const match = name.match(/([a-z]{3})[a-z]*[-_\s\.]+(\d{4})/);
+                                        
+                                        if (match) {
+                                            const monthKey = match[1]; // First 3 chars, e.g., 'jan'
+                                            const year = parseInt(match[2]);
+                                            const month = monthsMap[monthKey];
+                                            
+                                            if (month !== undefined && !isNaN(year)) {
+                                                return { file, year, month, date: new Date(year, month), valid: true };
+                                            }
+                                        }
+                                        // Fallback for files that don't match pattern
+                                        return { file, year: 0, month: 0, date: new Date(0), valid: false };
+                                    })
+                                    .filter(item => item.valid) // Only show valid files
+                                    .sort((a, b) => b.date.getTime() - a.date.getTime());
+
+                                    // Group by year
+                                    const grouped = sortedFiles.reduce((acc: { [key: number]: typeof sortedFiles }, curr) => {
+                                        if (!acc[curr.year]) acc[curr.year] = [];
+                                        acc[curr.year].push(curr);
+                                        return acc;
+                                    }, {});
+
+                                    const years = Object.keys(grouped).map(Number).sort((a, b) => b - a);
+                                    
+                                    const monthNames = [
+                                        "January", "February", "March", "April", "May", "June",
+                                        "July", "August", "September", "October", "November", "December"
+                                    ];
+
+                                    return years.map((year, index) => (
+                                        <div class={`minutes-year-group ${index > 0 ? 'hidden-year' : ''}`} data-year-group id={`minutes-${year}`}>
+                                            <h4>{year}</h4>
+                                            <ul>
+                                                {grouped[year].map(item => (
+                                                    <li>
+                                                        <a href={`/SloanPlaza/minutes/${item.file}`} target="_blank">
+                                                            {/* Display as Canonical "Month Year" */}
+                                                            📄 {monthNames[item.month]} {item.year}
+                                                        </a>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    ));
+                                })()}
+                                <button id="load-more-minutes" class="btn-text">Show More Archive</button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </Section>
+
+            <script>
+                const loadMoreBtn = document.getElementById('load-more-minutes');
+                if (loadMoreBtn) {
+                    loadMoreBtn.addEventListener('click', () => {
+                        const hiddenGroups = document.querySelectorAll('.hidden-year');
+                        hiddenGroups.forEach(group => {
+                            group.classList.remove('hidden-year');
+                            (group as HTMLElement).style.display = 'block';
+                        });
+                        loadMoreBtn.style.display = 'none';
+                    });
+                }
+            </script>
+
+            <Section id="board" title="Board of Directors" class="bg-light">
+                <div class="board-list-container">
+                    <ul class="board-list">
+                        {sortedBoard.map((member) => (
+                            <li>
+                                <span class="board-name">{member.data.name}</span>{member.data.role && <span class="board-role">, {member.data.role}</span>}
+                            </li>
+                        ))}
+                    </ul>
+                    <div class="board-contact">
+                        <p>Contact the board at <a href="mailto:board@sloanplaza.com">board@sloanplaza.com</a></p>
+                    </div>
+                </div>
+            </Section>
+
+            <Section id="management" title="Management Contacts">
+                <div class="contact-box">
+                    <div class="contact-item">
+                        <h3>Property Manager</h3>
+                        <p><strong>{siteData.management.propertyManager.name}</strong></p>
+                        <p><a href={`mailto:${siteData.management.propertyManager.email}`}>{siteData.management.propertyManager.email}</a></p>
+                        <p>{siteData.management.propertyManager.phone}</p>
+                    </div>
+                    <div class="contact-item urgent">
+                        <h3>Emergency Maintenance</h3>
+                        <p class="phone">{siteData.management.emergencyContact}</p>
+                        <p class="note">After hours only</p>
+                    </div>
+                </div>
+            </Section>
+
+            <Section id="directory" title="Resident Directory">
+                <div class="community-block directory">
+                    <p class="mb-md">Download the latest contact list for your neighbors.</p>
+                    <a href="/SloanPlaza/documents/directory.pdf" class="btn btn-secondary" download>
+                        ⬇ Download Resident Directory (PDF)
+                    </a>
+                </div>
+            </Section>
+
+            <Section id="pets" title="Pets & People">
+                <div class="community-block pets">
+                    <Carousel items={communityItems} />
+                </div>
+            </Section>
+        </div>
+	</main>
+	<Footer />
+</Layout>
+
+<style>
+    .dashboard-container {
+        display: grid;
+        grid-template-columns: 250px 1fr; /* Sidebar + Content */
+        min-height: 100vh;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .sidebar {
+        padding: var(--spacing-lg) var(--spacing-md);
+        display: none; /* Hidden on mobile by default */
+    }
+
+    .sticky-wrapper {
+        position: sticky;
+        top: 100px;
+    }
+
+    .content {
+        padding: var(--spacing-lg);
+        min-width: 0; /* Prevent overflow */
+    }
+
+    .page-title {
+        text-align: center;
+        margin-bottom: var(--spacing-xl);
+        color: var(--color-primary);
+        border-bottom: 2px solid var(--color-secondary);
+        display: inline-block;
+        padding-bottom: var(--spacing-sm);
+    }
+
+    @media (min-width: 768px) {
+        .sidebar {
+            display: block;
+        }
+    }
+
+    /* Grid Layouts */
+    .docs-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: var(--spacing-lg);
+    }
+
+    .doc-category {
+        background: var(--color-white);
+        padding: var(--spacing-md);
+        border-radius: var(--border-radius);
+        border: 1px solid #eee;
+    }
+
+    /* Minutes Styling */
+    .minutes-year-group h4 {
+        margin-top: var(--spacing-md);
+        margin-bottom: var(--spacing-sm);
+        color: var(--color-secondary);
+        border-bottom: 1px solid #eee;
+        padding-bottom: 5px;
+    }
+
+    .minutes-year-group:first-child h4 {
+        margin-top: 0;
+    }
+
+    .hidden-year {
+        display: none;
+    }
+
+    .btn-text {
+        background: none;
+        border: none;
+        color: var(--color-secondary);
+        cursor: pointer;
+        padding: var(--spacing-sm) 0;
+        font-weight: bold;
+        text-decoration: underline;
+        margin-top: var(--spacing-md);
+    }
+    
+    .btn-text:hover {
+        color: var(--color-primary);
+    }
+
+    .doc-category h3 {
+        color: var(--color-primary);
+        border-bottom: 1px solid var(--color-secondary);
+        padding-bottom: var(--spacing-sm);
+        margin-bottom: var(--spacing-md);
+        font-size: 1.2rem;
+    }
+
+    .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: var(--spacing-lg);
+    }
+
+    /* Embed Placeholders */
+    .embed-placeholder {
+        background: #f0f0f0;
+        height: 150px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--border-radius);
+        color: #666;
+        border: 1px dashed #ccc;
+    }
+
+    .calendar-embed-placeholder {
+        background: #f0f0f0;
+        height: 400px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--border-radius);
+        margin-top: var(--spacing-lg);
+    }
+
+    /* Management Contacts */
+    .contact-box {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--spacing-xl);
+        justify-content: center;
+    }
+
+    .contact-item {
+        text-align: center;
+        padding: var(--spacing-lg);
+        background: var(--color-white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        flex: 1;
+        min-width: 250px;
+    }
+
+    .contact-item.urgent {
+        border: 2px solid #e74c3c;
+    }
+
+    .contact-item.urgent h3 {
+        color: #e74c3c;
+    }
+
+    .phone {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: var(--color-primary);
+    }
+
+    .note {
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    /* History */
+    .history-content {
+        max-width: 800px;
+        margin: 0 auto;
+        text-align: justify;
+        line-height: 1.8;
+    }
+    
+    .history-content p {
+        margin-bottom: var(--spacing-md);
+    }
+
+    .community-block {
+        margin-bottom: var(--spacing-xl);
+        text-align: center;
+    }
+
+    .caption {
+        font-style: italic;
+        color: #555;
+    }
+
+    .bg-light {
+        background-color: var(--color-light-gray);
+    }
+
+    /* Board List */
+    .board-list-container {
+        text-align: center;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .board-list {
+        list-style: none;
+        padding: 0;
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .board-list li {
+        margin-bottom: var(--spacing-sm);
+        font-size: 1.1rem;
+        padding: var(--spacing-sm);
+        border-bottom: 1px solid #eee;
+    }
+
+    .board-list li:last-child {
+        border-bottom: none;
+    }
+
+    .board-name {
+        font-weight: bold;
+        color: var(--color-primary);
+    }
+
+    .board-role {
+        font-style: italic;
+        color: #666;
+    }
+
+    .board-contact {
+        margin-top: var(--spacing-lg);
+        font-size: 1.2rem;
+        font-weight: bold;
+    }
+
+    .text-muted {
+        color: #888;
+        font-style: italic;
+    }
+</style>

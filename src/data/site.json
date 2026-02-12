@@ -1,0 +1,15 @@
+{
+  "nextMeeting": {
+    "date": "February 20, 2026",
+    "time": "7:00 PM",
+    "location": "Lobby"
+  },
+  "management": {
+    "emergencyContact": "734-555-0199",
+    "propertyManager": {
+      "name": "Jane Doe",
+      "email": "manager@sloanplaza.com",
+      "phone": "734-555-0100"
+    }
+  }
+}

@@ -1,0 +1,73 @@
+---
+---
+<header class="header">
+    <div class="container header-content">
+        <a href="/SloanPlaza/" class="logo">
+            <img src="/SloanPlaza/images/SloanIcon_cropped.png" alt="Sloan Plaza Logo" />
+        </a>
+        <nav>
+            <a href="/SloanPlaza/">Home</a>
+            <a href="/SloanPlaza/members/" class="btn-login">Resident/Owner Area</a>
+        </nav>
+    </div>
+</header>
+
+<style>
+    .header {
+        background-color: var(--color-primary);
+        padding: var(--spacing-md) 0;
+        box-shadow: var(--shadow-md);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+    }
+
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .logo {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        color: var(--color-secondary);
+        font-family: var(--font-heading);
+        font-size: 1.5rem;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .logo img {
+        height: 100px;
+        width: auto;
+    }
+
+    nav {
+        display: flex;
+        gap: var(--spacing-md);
+        align-items: center;
+    }
+
+    nav a {
+        color: var(--color-white);
+        font-weight: 500;
+    }
+
+    nav a:hover {
+        color: var(--color-secondary);
+    }
+
+    .btn-login {
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--color-secondary);
+        border-radius: var(--border-radius);
+        transition: all 0.2s;
+    }
+
+    .btn-login:hover {
+        background-color: var(--color-secondary);
+        color: var(--color-primary);
+    }
+</style>

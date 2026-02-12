@@ -1,0 +1,64 @@
+---
+interface Link {
+    id: string;
+    label: string;
+}
+
+interface Props {
+    links: Link[];
+}
+
+const { links } = Astro.props;
+---
+
+<aside class="toc">
+    <h3>Contents</h3>
+    <ul>
+        {links.map((link) => (
+            <li>
+                <a href={`#${link.id}`}>{link.label}</a>
+            </li>
+        ))}
+    </ul>
+</aside>
+
+<style>
+    .toc {
+        background: var(--color-light-gray);
+        padding: var(--spacing-md);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        border-left: 4px solid var(--color-secondary);
+        position: sticky;
+        top: 100px; /* Below header */
+    }
+
+    .toc h3 {
+        font-size: 1.1rem;
+        margin-bottom: var(--spacing-sm);
+        color: var(--color-primary);
+    }
+
+    .toc ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .toc li {
+        margin-bottom: 0.5rem;
+    }
+
+    .toc a {
+        color: var(--color-text);
+        text-decoration: none;
+        font-size: 0.95rem;
+        display: block;
+        padding: 0.25rem 0;
+    }
+
+    .toc a:hover {
+        color: var(--color-secondary);
+        padding-left: 4px; /* subtle interaction */
+    }
+</style>

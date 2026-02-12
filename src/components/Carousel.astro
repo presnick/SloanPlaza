@@ -1,0 +1,274 @@
+---
+import Card from './Card.astro';
+
+interface Props {
+  items: any[];
+}
+
+const { items } = Astro.props;
+---
+
+<div class="carousel-wrapper">
+    <div class="carousel-viewport">
+        <div class="carousel-track" id="carousel-track">
+            {items.map((item) => (
+                <div class="carousel-slide">
+                    <Card 
+                        title={item.data.name} 
+                        image={item.data.image}
+                    >
+                        <p class="caption">{item.data.caption}</p>
+                    </Card>
+                </div>
+            ))}
+        </div>
+    </div>
+    
+    <button class="carousel-btn prev" id="carousel-prev" aria-label="Previous Slide">&lt;</button>
+    <button class="carousel-btn next" id="carousel-next" aria-label="Next Slide">&gt;</button>
+</div>
+
+<script>
+    document.addEventListener('astro:page-load', initCarousel);
+    window.addEventListener('DOMContentLoaded', initCarousel);
+
+    function initCarousel() {
+        const track = document.getElementById('carousel-track');
+        if (!track) return;
+
+        // Randomize Order (Client-side)
+        let slides = Array.from(track.children);
+        
+        // Only shuffle and clone if not already processed
+        if (!track.dataset.shuffled) {
+            const shuffledSlides = slides.sort(() => Math.random() - 0.5);
+            
+            // 1. Re-append originals in random order
+            shuffledSlides.forEach(slide => track.appendChild(slide));
+            
+            // 2. Clone them for infinite loop
+            // We clone the shuffled set so the sequence duplicates correctly: A B C -> A B C
+            shuffledSlides.forEach(slide => {
+                const clone = slide.cloneNode(true) as HTMLElement;
+                clone.setAttribute('aria-hidden', 'true');
+                clone.dataset.clone = 'true';
+                track.appendChild(clone);
+            });
+
+            track.dataset.shuffled = 'true';
+            // Refetch slides to include clones if needed, but we rely on original count
+        }
+
+        // Original length is half the current children count (since we duplicated once)
+        // Or simply current children count / 2.
+        const originalLength = track.children.length / 2;
+
+        const prevBtn = document.getElementById('carousel-prev');
+        const nextBtn = document.getElementById('carousel-next');
+        
+        let currentIndex = 0;
+        let isTransitioning = false;
+        
+
+
+        function updateCarousel() {
+            const slides = track!.children;
+            if (slides.length === 0) return;
+            
+            const slideWidth = (slides[0] as HTMLElement).getBoundingClientRect().width;
+            
+            const style = getComputedStyle(track as Element);
+            const gap = parseFloat(style.gap) || 0;
+            
+            const moveAmount = (slideWidth + gap) * currentIndex;
+            (track as HTMLElement).style.transform = `translateX(-${moveAmount}px)`;
+        }
+
+        function moveNext() {
+            if (isTransitioning) return;
+            
+            // We allow moving up to originalLength (which shows the first clone set)
+            
+            currentIndex++;
+            updateCarousel();
+
+            // Seamless Loop Logic:
+            // If we have just moved to the first clone (index == originalLength)
+            // We wait for the transition to finish, then snap back to index 0
+            if (currentIndex === originalLength) {
+                isTransitioning = true;
+                setTimeout(() => {
+                    track!.style.transition = 'none';
+                    currentIndex = 0;
+                    updateCarousel();
+                    
+                    // Force reflow to ensure the transform apply happens without transition
+                    void track!.offsetWidth; 
+                    
+                    track!.style.transition = ''; // Restore CSS transition
+                    isTransitioning = false;
+                }, 500); // 0.5s matches CSS transition duration
+            }
+        }
+
+        function movePrev() {
+             if (isTransitioning) return;
+
+             // If at start, snap to end (clones) then move back?
+             // Simple loop for now: stop at 0 or wrap to max?
+             // User asked for "restart at beginning when it gets to the end", implying forward.
+             // For prev, let's just do simple wrapping or bounding.
+             // Let's implement seamless wrap for prev too for polish.
+             
+            if (currentIndex === 0) {
+                // Snap to clone start
+                track!.style.transition = 'none';
+                currentIndex = originalLength;
+                updateCarousel();
+                void track!.offsetWidth;
+                track!.style.transition = '';
+                
+                // Then move back
+                requestAnimationFrame(() => {
+                    currentIndex--;
+                    updateCarousel();
+                });
+            } else {
+                currentIndex--;
+                updateCarousel();
+            }
+        }
+
+        // Auto Advance
+        let autoAdvanceInterval: NodeJS.Timeout;
+
+        function startAutoAdvance() {
+            stopAutoAdvance();
+            autoAdvanceInterval = setInterval(moveNext, 5000); // 5 seconds
+        }
+
+        function stopAutoAdvance() {
+            if (autoAdvanceInterval) clearInterval(autoAdvanceInterval);
+        }
+
+        // Event Listeners
+        if (nextBtn) nextBtn.addEventListener('click', () => {
+            stopAutoAdvance(); // Pause interactions
+            moveNext();
+             // Maybe restart after interaction?
+        });
+        if (prevBtn) prevBtn.addEventListener('click', () => {
+            stopAutoAdvance();
+            movePrev();
+        });
+
+        // Pause on hover
+        track.addEventListener('mouseenter', stopAutoAdvance);
+        track.addEventListener('mouseleave', startAutoAdvance);
+        
+        // Also pause when buttons are hovered
+        if (prevBtn) {
+            prevBtn.addEventListener('mouseenter', stopAutoAdvance);
+            prevBtn.addEventListener('mouseleave', startAutoAdvance);
+        }
+        if (nextBtn) {
+            nextBtn.addEventListener('mouseenter', stopAutoAdvance);
+            nextBtn.addEventListener('mouseleave', startAutoAdvance);
+        }
+        
+        // Handle Resize
+        let resizeTimer: NodeJS.Timeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                // Reset to 0 to be safe and simple
+                track.style.transition = 'none';
+                currentIndex = 0; 
+                updateCarousel();
+                setTimeout(() => { track.style.transition = ''; }, 50);
+            }, 100);
+        });
+
+        // Initial update
+        setTimeout(() => {
+            updateCarousel();
+            startAutoAdvance();
+        }, 50);
+    }
+</script>
+
+<style>
+    .carousel-wrapper {
+        position: relative;
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 0 80px; /* Increased space for buttons */
+    }
+
+    .carousel-viewport {
+        overflow: hidden;
+    }
+
+    .carousel-track {
+        display: flex;
+        gap: var(--spacing-lg);
+        transition: transform 0.5s ease;
+    }
+
+    .carousel-slide {
+        flex: 0 0 100%; /* Default 1 per view */
+        min-width: 0;
+    }
+
+    /* Remove border from cards inside carousel */
+    :global(.carousel-slide .card) {
+        border: none;
+        box-shadow: none;
+    }
+
+    @media (min-width: 768px) {
+        .carousel-slide {
+            /* (100% - 1 gap) / 2 items */
+            flex: 0 0 calc((100% - var(--spacing-lg)) / 2);
+        }
+    }
+
+    @media (min-width: 1024px) {
+        .carousel-slide {
+            /* (100% - 2 gaps) / 3 items */
+            flex: 0 0 calc((100% - (2 * var(--spacing-lg))) / 3);
+        }
+    }
+
+    .carousel-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: var(--color-primary);
+        color: var(--color-secondary);
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        font-size: 1.5rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+        opacity: 0.8;
+        transition: opacity 0.2s;
+    }
+
+    .carousel-btn:hover {
+        opacity: 1;
+    }
+
+    .carousel-btn.prev { left: 0; }
+    .carousel-btn.next { right: 0; }
+
+    .caption {
+        font-style: italic;
+        color: #555;
+    }
+</style>

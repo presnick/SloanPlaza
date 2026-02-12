@@ -4,7 +4,7 @@ import path from 'path';
 
 const password = process.env.SITE_PASSWORD;
 const file = path.resolve('dist/members/index.html');
-const tempFile = path.resolve('dist/members/encrypted.html');
+
 
 console.log('Build script running.');
 console.log('Checking for SITE_PASSWORD...');
